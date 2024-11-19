@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landslide Detection</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #A1C4FD, #C2E9FB); /* Subtle gradient background */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 800px;
+            position: relative;
+            animation: fadeIn 1.5s ease-out; /* Animation for smooth appearance */
+        }
+        h1 {
+            color: #333;
+            font-size: 36px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-top: 30px;
+            font-weight: normal;
+        }
+        label {
+            font-size: 18px;
+            color: #333;
+            margin-right: 10px;
+            margin-top: 20px;
+        }
+        input[type="file"] {
+            margin: 20px 0;
+            font-size: 16px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            transition: border-color 0.3s ease;
+        }
+        input[type="file"]:hover {
+            border-color: #4CAF50;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            font-size: 16px;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Add styling for the progress bar */
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: none; /* Hidden initially */
+        }
+        .progress-bar {
+            height: 20px;
+            width: 0%;
+            background-color: #4CAF50;
+            border-radius: 5px;
+        }
+
+        /* Image and progress bar container */
+        #prediction_container {
+            margin-top: 20px;
+            min-height: 300px; /* Reserve space for the image */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #prediction_image {
+            width: 100%;
+            max-width: 600px;  /* Set max-width */
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: none;  /* Initially hide the image */
+        }
+
+        /* Footer section */
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        /* Smooth fade-in effect */
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Landslide Detection</h1>
+        <form action="/predict" method="post" enctype="multipart/form-data" id="upload-form">
+            <label for="file">Upload Image</label>
+            <input type="file" name="file" id="file" required>
+            <button type="submit">Predict</button>
+        </form>
+
+        <div id="progress-container" class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+
+        <div id="prediction_container">
+            <h2>Prediction Result:</h2>
+            <img id="prediction_image" src="" alt="Prediction Image">
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Landslide Detection</p>
+    </footer>
+
+    <script>
+        // JavaScript to handle form submission and display the result
+        const form = document.querySelector('#upload-form');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBar = document.getElementById('progress-bar');
+        const predictionImage = document.getElementById('prediction_image');
+        
+        form.onsubmit = async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            // Show progress bar when prediction starts
+            progressContainer.style.display = 'block';
+            let progress = 0;
+
+            // Simulate progress bar by incrementing every 500ms (this can be adjusted or replaced with real progress updates if available)
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 500);
+
+            // Send the image to Flask for prediction
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+            if (result.prediction_image) {
+                // Hide the progress bar and show the result image
+                progressContainer.style.display = 'none';
+                predictionImage.src = result.prediction_image;
+                predictionImage.style.display = 'block';
+            } else {
+                alert('Error in prediction.');
+            }
+        };
+    </script>
+</body>
+</html>
